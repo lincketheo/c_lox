@@ -1,0 +1,61 @@
+# Parts of a Language
+
+# Frontend
+## Scanning (Lexing)
+- Takes linear system of characters and chunks them into a series of tokens
+
+## Parsing
+- GRAMMAR - ability to compose larger expressions out of smaller ones
+
+## Static Analysis
+- "a + b", but what do "a" and "b" refer to?
+- binding / resolution:
+    - For each identifier, find where that name is defined and wire the two together
+    - Scope: region of code where a name can be used to refer to a certain declaration
+    - Type checking 
+
+Where do you store all this information?
+- Attributes of the syntax tree
+    - extra fields in the nodes that aren't initialized during parsing but get filled later
+- Lookup table off the side
+    - symbol table
+
+## Intermediate Representations
+- C, Pascal, Fortran -> IR -> x86, ARM
+
+## Optimization
+```
+pennyArea = 3.14159 * (0.75 / 2) * (0.75 / 2);
+```
+```
+pennyArea = 0.4417860938;
+```
+
+## Code Generation
+- Convert to machine code
+
+# Back end
+## Virtual machine
+- pcode / byte code
+## Runtime
+- Garbage collection etc
+
+# Alternatives
+- Single pass compilers
+    - Context un aware / no global state 
+- Tree walk interpreters
+    - Run it right after parsing it into an AST
+    - Not common 
+- Transpiler
+    - Source to source compilers
+- Just in Time Compilation 
+    - Hot spot JVM CLR (Microsoft) and most JAvascript interpreters
+    - Compile to native code for the architecture  
+
+# Compiler vs Interpreter 
+- Compiling:
+    - implementation technique
+    - translating source language to some other lower level form
+    - doesn't execute it 
+- Interpreter 
+    - executes it immediately

@@ -2,9 +2,7 @@
 #include "memory.h"
 #include <stdlib.h>
 
-#define WHITESPACE_C                                                           \
-  ' ' : case '\r':                                                             \
-  case '\t'
+#define WHITESPACE_C ' ' : case '\r' : case '\t'
 
 typedef enum {
   // Single-character tokens.

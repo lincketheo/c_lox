@@ -59,3 +59,56 @@ pennyArea = 0.4417860938;
     - doesn't execute it 
 - Interpreter 
     - executes it immediately
+
+# Representing Code 
+## Context Free Grammars
+## Formal Grammar 
+- Takes a set of atomic pieces (alphabet) and defines an infinite set of strings in the grammar 
+
+
+## Lexical 
+- Alphabet = Characters 
+- String = Lexeme / token 
+- Implemented by the = Scanner 
+
+## Syntactic Grammar 
+- Alphabet = Token
+- String = expression 
+- Implemented by the = Parser
+
+- Terminal - letter from the grammar's alphabet ("if" / "1234" ...)
+- Non terminal - reference to another rule in the grammar
+
+Backus Naur Form 
+Example: Breakfast 
+```
+breakfast -> protein "with" breakfast "on the side";
+breakfast -> protein;
+breakfast -> bread;
+
+protein -> crispiness "crispy" "bacon";
+protein -> "sausage";
+protein -> cooked "eggs";
+
+crispiness -> "really";
+crispiness -> "really" crispiness;
+
+cooked -> "scrambled";
+cooked -> "poached";
+cooked -> "fried";
+
+bread -> "toast";
+bread -> "biscuits";
+bread -> "English Muffin";
+```
+
+Lox:
+```
+expression -> literal | unary | binary | grouping;
+literal -> NUMBER | STRING | "true" | "false" | "nil";
+grouping -> "(" expression ")";
+unary -> ("-" | "!") expression;
+binary -> expression operator expression;
+operator -> "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "*" | "/";
+```
+

@@ -129,5 +129,5 @@ token_arr token_arr_create();
 
 void token_arr_free(token_arr arr);
 
-token *token_arr_push(token_arr *arr, const char *literal_head, size_t len,
-                      token_t type, int line);
+void token_arr_push(token_arr *t, const char *loc, size_t len, token_t type,
+                    int line);

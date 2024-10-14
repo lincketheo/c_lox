@@ -66,10 +66,9 @@ static inline void token_arr_make_available(token_arr *t, size_t newlen) {
   }
 }
 
-token *token_arr_push(token_arr *t, const char *loc, size_t len, token_t type,
-                      int line) {
+void token_arr_push(token_arr *t, const char *loc, size_t len, token_t type,
+                    int line) {
   token_arr_ASSERT(t);
   token_arr_make_available(t, t->len + 1);
   t->tokens[t->len++] = token_create(&t->mem, loc, len, type, line);
-  return &t->tokens[t->len];
 }

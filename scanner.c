@@ -243,16 +243,13 @@ static void ss_parse(token_arr *t, scanner_state *s) {
     s->start = s->current;
     next = ss_next_tt(s);
 
-
-
     if (next != -1) {
-      token* tk = token_arr_push(t, &s->data[s->start], 
-                                 s->current - s->start, 
+      token *tk = token_arr_push(t, &s->data[s->start], s->current - s->start,
                                  next, s->line);
-      if(next == STRING) {
+      if (next == STRING) {
         tk->str_val = tk->literal;
       }
-      if(next == NUMBER) {
+      if (next == NUMBER) {
         tk->n_val = atoi(tk->literal);
       }
     }

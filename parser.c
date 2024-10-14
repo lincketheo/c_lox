@@ -123,7 +123,7 @@ static expr *parse_primary(parser *p) {
     *e = expr_literal(lt_string(prev.str_val));
     return e;
   }
-  
+
   if (parser_match(p, NUMBER)) {
     token prev = parser_prev_t(p);
     ASSERT(prev.type == NUMBER);
@@ -132,16 +132,17 @@ static expr *parse_primary(parser *p) {
     return e;
   }
 
-  if(parser_match(p, LEFT_PAREN)) {
-    expr* e = parse_expression(p);
-    if(parser_check(p, RIGHT_PAREN)) {
+  if (parser_match(p, LEFT_PAREN)) {
+    expr *e = parse_expression(p);
+    if (parser_check(p, RIGHT_PAREN)) {
       parser_advance(p);
-      expr* ret = memstack_malloc(&p->mem, sizeof*ret);
+      expr *ret = memstack_malloc(&p->mem, sizeof *ret);
       *ret = expr_grouping(e);
       return ret;
     } else {
       token t = parser_peek_t(p);
-      compile_error(t.line, "Expected closing paren ')'. Instead, got: %s", t.literal);
+      compile_error(t.line, "Expected closing paren ')'. Instead, got: %s",
+                    t.literal);
       return NULL;
     }
   }

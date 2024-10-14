@@ -244,14 +244,8 @@ static void ss_parse(token_arr *t, scanner_state *s) {
     next = ss_next_tt(s);
 
     if (next != -1) {
-      token *tk = token_arr_push(t, &s->data[s->start], s->current - s->start,
-                                 next, s->line);
-      if (next == STRING) {
-        tk->str_val = tk->literal;
-      }
-      if (next == NUMBER) {
-        tk->n_val = atoi(tk->literal);
-      }
+      token_arr_push(t, &s->data[s->start], s->current - s->start, next,
+                     s->line);
     }
   }
 }
@@ -271,7 +265,14 @@ int scanner_run(const char *data) {
 
   token_arr tokens = scanner_parse_tokens(data);
   for (int i = 0; i < tokens.len; ++i) {
-    printf("%s %s\n", tttostr(tokens.tokens[i].type), tokens.tokens[i].literal);
+    token t = tokens.tokens[i];
+    if (t.type == STRING) {
+      printf("%s %s %s\n", tttostr(t.type), t.literal, t.str_val);
+    } else if (t.type == NUMBER) {
+      printf("%s %s %f\n", tttostr(t.type), t.literal, t.n_val);
+    } else {
+      printf("%s %s\n", tttostr(t.type), t.literal);
+    }
   }
   token_arr_free(tokens);
 

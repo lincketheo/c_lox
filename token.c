@@ -19,12 +19,22 @@ const char *tttostr(token_t t) {
 
 token token_create(memstack *m, const char *loc, size_t len, token_t type,
                    int line) {
-  token ret;
+  token ret = {.type = type, .line = line};
+
   ret.literal = memstack_malloc(m, len + 1);
   memcpy(ret.literal, loc, len);
   ret.literal[len] = '\0';
-  ret.type = type;
-  ret.line = line;
+
+  if (type == STRING) {
+    // str without quotes
+    ret.str_val = memstack_malloc(m, len + 1 - 2);
+    memcpy(ret.str_val, &loc[1], len - 2);
+    ret.str_val[len - 1] = '\0';
+  }
+  if (type == NUMBER) {
+    ret.n_val = atof(ret.literal);
+  }
+
   return ret;
 }
 

@@ -112,3 +112,82 @@ binary -> expression operator expression;
 operator -> "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "*" | "/";
 ```
 
+# Ambiguity
+- different choices of productions can lead to the same string
+
+Example: `6/3-1`
+    - solution: precedence
+    - Associativity - left / right associative
+        - Left (e.g. minus):
+            - `3 - 1 - 1 = (3 - 1) - 1`
+        - Right (e.g. assignment):
+            - `a = b = c == a = (b = c)`
+    - Lox
+        - Equality (==, !=) Left
+        - Comparison (>, >=, <, <=) Left
+        - Term (-, +) Left
+        - Factor (/, *) Left
+        - Unary (!, -) Right
+
+          
+precedence:
+expression -> ...
+equality -> ...
+comparison -> ...
+term -> ...
+factor -> ...
+unary -> ...
+primary -> ...
+
+Rules match precedence level or higher:
+    - unary matches !negated or 1234
+    - term matches 1 + 2 or 3 * 4 / 5
+
+```
+expression -> equality
+equality -> comparison ( ( "!=" | "==") comparison)*;
+comparison -> term (( ">" | ">=" | "<" | "<=" ) term)*;
+term -> factor ( ( "+" | "-" ) factor )*;
+factor -> unary ( ( "/" | "*" ) unary )*;
+unary -> ( "!" | "-" ) unary | primary;
+primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")";
+```
+https://www.google.com/search?client=firefox-b-1-e&q=proving+that+a+grammar+is+unambiguous
+
+# Parsing 
+- LL(k) LR(1) LALR Earley, Shunting yard algorithm, packrat parsing
+- Recursive descent:
+    - Top Down
+    
+- Terminal - Code to match and consume the token 
+- Non terminal - Call to that rule's function 
+- | if / switch
+- * or + while or for loop 
+- ? if statement
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

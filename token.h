@@ -1,3 +1,5 @@
+#pragma once
+
 #include "errors.h"
 #include "memory.h"
 #include <stdlib.h>
@@ -98,6 +100,11 @@ const char *tttostr(token_t);
   func(TT_EOF)
 
 typedef struct {
+  union {
+    // TODO
+    char *str_val;
+    double n_val;
+  };
   char *literal;
   int line;
   token_t type;
@@ -120,5 +127,5 @@ token_arr token_arr_create();
 
 void token_arr_free(token_arr arr);
 
-token token_arr_push(token_arr *arr, const char *literal_head, size_t len,
+token* token_arr_push(token_arr *arr, const char *literal_head, size_t len,
                      token_t type, int line);

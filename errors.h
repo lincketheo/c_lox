@@ -3,7 +3,7 @@
 #include <errno.h>
 
 void fatal_error(const char *format, ...) __attribute__((noreturn));
-void compile_error(const int line, const char *where, const char *format, ...);
+void compile_error(const int line, const char *format, ...);
 
 #define abort_if(expr, context)                                                \
   do {                                                                         \

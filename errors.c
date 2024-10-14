@@ -12,10 +12,10 @@ void fatal_error(const char *format, ...) {
   abort();
 }
 
-void compile_error(const int line, const char *where, const char *format, ...) {
+void compile_error(const int line, const char *format, ...) {
   va_list args;
   va_start(args, format);
-  fprintf(stderr, "[line %d] Error%s: ", line, where);
+  fprintf(stderr, "[line %d] Error: ", line);
   vfprintf(stderr, format, args);
   va_end(args);
 }

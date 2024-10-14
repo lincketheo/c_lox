@@ -1,6 +1,8 @@
 #pragma once
 
+#include "token.h"
 #include <stdio.h>
+
 typedef struct expr_s expr;
 
 ///////////////////////////////////////
@@ -43,51 +45,38 @@ static inline literal lt_NIL() {
 
 ///////////////////////////////////////
 ////////////// Section Unary
-typedef enum { UT_MINUS, UT_BANG } unary_t;
-
 typedef struct {
-  unary_t type;
+  token_t op;
   expr *e;
 } unary;
 
-static inline unary ur_minus(expr *e) {
+#define unary_operator_ASSERT(op) ASSERT(op == MINUS || op == BANG)
+
+static inline unary unary_c(expr *e, token_t op) {
+  unary_operator_ASSERT(op);
+
   return (unary){
-      .type = UT_MINUS,
+      .op = op,
       .e = e,
   };
 }
-
-static inline unary ur_bang(expr *e) {
-  return (unary){
-      .type = UT_BANG,
-      .e = e,
-  };
-}
-
-///////////////////////////////////////
-////////////// Section Operator
-typedef enum {
-  OT_EQUAL_EQUAL,
-  OT_BANG_EQUAL,
-  OT_LESS,
-  OT_LESS_EQUAL,
-  OT_GREATER,
-  OT_GREATER_EQUAL,
-  OT_PLUS,
-  OT_MINUS,
-  OT_STAR,
-  OT_SLASH
-} operator_t;
 
 ///////////////////////////////////////
 ////////////// Section Binary
 typedef struct {
   expr *left;
-  operator_t op;
+  token_t op;
   expr *right;
 } binary;
 
-static inline binary binary_c(expr *left, operator_t op, expr *right) {
+#define binary_operator_ASSERT(op)                                             \
+  ASSERT(op == EQUAL_EQUAL || op == BANG_EQUAL || op == LESS ||                \
+         op == LESS_EQUAL || op == GREATER || op == GREATER_EQUAL ||           \
+         op == PLUS || op == MINUS || op == STAR || op == SLASH);
+
+static inline binary binary_c(expr *left, token_t op, expr *right) {
+  binary_operator_ASSERT(op);
+
   return (binary){
       .left = left,
       .op = op,

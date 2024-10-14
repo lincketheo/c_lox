@@ -22,49 +22,53 @@ int fprintln_expr_r(FILE *ofp, expr *e) {
 
   case ET_UNARY: {
     int ret = 0;
-    switch (e->u.type) {
-    case UT_BANG:
+    switch (e->u.op) {
+    case BANG:
       ret = fprintf(ofp, "!");
       break;
-    case UT_MINUS:
+    case MINUS:
       ret = fprintf(ofp, "-");
       break;
+    default:
+      unreachable();
     }
     return ret + fprintln_expr_r(ofp, e->u.e);
   }
   case ET_BINARY: {
     int ret = fprintln_expr_r(ofp, e->b.left);
     switch (e->b.op) {
-    case OT_EQUAL_EQUAL:
+    case EQUAL_EQUAL:
       ret += fprintf(ofp, " == ");
       break;
-    case OT_BANG_EQUAL:
+    case BANG_EQUAL:
       ret += fprintf(ofp, " != ");
       break;
-    case OT_LESS:
+    case LESS:
       ret += fprintf(ofp, " < ");
       break;
-    case OT_LESS_EQUAL:
+    case LESS_EQUAL:
       ret += fprintf(ofp, " <= ");
       break;
-    case OT_GREATER:
+    case GREATER:
       ret += fprintf(ofp, " > ");
       break;
-    case OT_GREATER_EQUAL:
+    case GREATER_EQUAL:
       ret += fprintf(ofp, " >= ");
       break;
-    case OT_PLUS:
+    case PLUS:
       ret += fprintf(ofp, " + ");
       break;
-    case OT_MINUS:
+    case MINUS:
       ret += fprintf(ofp, " - ");
       break;
-    case OT_STAR:
+    case STAR:
       ret += fprintf(ofp, " * ");
       break;
-    case OT_SLASH:
+    case SLASH:
       ret += fprintf(ofp, " / ");
       break;
+    default:
+      unreachable();
     }
     return ret + fprintln_expr_r(ofp, e->b.right);
   }

@@ -1,5 +1,6 @@
 #include "scanner.h"
 #include "errors.h"
+#include "token.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -76,7 +77,7 @@ static void ss_parse_string(scanner_state *s) {
   }
 
   if (ss_end(s)) {
-    compile_error(s->line, "", "Unterminated string");
+    compile_error(s->line, "Unterminated string");
     s->error = 1;
     return;
   }
@@ -228,7 +229,7 @@ static token_t ss_next_tt(scanner_state *s) {
     } else if (is_alpha(c)) {
       return ss_parse_ident(s);
     }
-    compile_error(s->line, "", "Unexpected char: %c\n", c);
+    compile_error(s->line, "Unexpected char: %c\n", c);
     s->error = 1;
     return -1;
   }
@@ -242,9 +243,18 @@ static void ss_parse(token_arr *t, scanner_state *s) {
     s->start = s->current;
     next = ss_next_tt(s);
 
+
+
     if (next != -1) {
-      token_arr_push(t, &s->data[s->start], s->current - s->start, next,
-                     s->line);
+      token* tk = token_arr_push(t, &s->data[s->start], 
+                                 s->current - s->start, 
+                                 next, s->line);
+      if(next == STRING) {
+        tk->str_val = tk->literal;
+      }
+      if(next == NUMBER) {
+        tk->n_val = atoi(tk->literal);
+      }
     }
   }
 }

@@ -48,7 +48,7 @@ static char ss_peek_ch(const scanner_state *s) {
   return s->data[s->current];
 }
 
-// Peek but don't advance
+// Peek twice but don't advance
 static char ss_peek2_ch(const scanner_state *s) {
   scanner_state_ASSERT(s);
   if (ss_end(s) || s->data[s->current + 1] == '\0')

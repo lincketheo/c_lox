@@ -5,19 +5,13 @@
 #include <stdarg.h>
 #include <string.h>
 
-typedef enum {
-  IT_STRING,
-  IT_NUMBER,
-  IT_NIL,
-  IT_BOOL
-} interp_t;
+typedef enum { IT_STRING, IT_NUMBER, IT_NIL, IT_BOOL } interp_t;
 
-#define __itttostr_case(t) \
-  case t:                  \
+#define __itttostr_case(t)                                                     \
+  case t:                                                                      \
     return #t
 
-static const char* itttostr(interp_t i)
-{
+static const char *itttostr(interp_t i) {
   switch (i) {
     __itttostr_case(IT_STRING);
     __itttostr_case(IT_NUMBER);
@@ -28,17 +22,16 @@ static const char* itttostr(interp_t i)
 
 typedef struct {
   union {
-    char* sval;
+    char *sval;
     double dval;
     int bool_val;
   };
   interp_t type;
 } interp;
 
-static int interpret(expr* e, interp* i);
+static int interpret(expr *e, interp *i);
 
-static void interpret_literal(literal b, interp* i)
-{
+static void interpret_literal(literal b, interp *i) {
   ASSERT(i);
 
   switch (b.type) {
@@ -67,8 +60,7 @@ static void interpret_literal(literal b, interp* i)
   }
 }
 
-static inline int number_cast(interp* i)
-{
+static inline int number_cast(interp *i) {
   ASSERT(i);
 
   switch (i->type) {
@@ -90,8 +82,7 @@ static inline int number_cast(interp* i)
   }
 }
 
-static inline void bool_cast(interp* i)
-{
+static inline void bool_cast(interp *i) {
   switch (i->type) {
   case IT_NUMBER:
     i->type = IT_BOOL;
@@ -113,20 +104,17 @@ static inline void bool_cast(interp* i)
   }
 }
 
-static inline void minus_number(interp* i)
-{
+static inline void minus_number(interp *i) {
   ASSERT(i->type == IT_NUMBER);
   i->dval = -i->dval;
 }
 
-static inline void bang_bool(interp* i)
-{
+static inline void bang_bool(interp *i) {
   ASSERT(i->type == IT_BOOL);
   i->bool_val = !i->bool_val;
 }
 
-static int interpret_unary(unary b, interp* i)
-{
+static int interpret_unary(unary b, interp *i) {
   ASSERT(i);
   if (interpret(b.e, i))
     return -1;
@@ -148,8 +136,7 @@ static int interpret_unary(unary b, interp* i)
   }
 }
 
-static int equal_equal(interp* left, interp* right)
-{
+static int equal_equal(interp *left, interp *right) {
   ASSERT(left);
   ASSERT(right);
 
@@ -178,8 +165,7 @@ static int equal_equal(interp* left, interp* right)
   }
 }
 
-static int str_less(const char* left, const char* right)
-{
+static int str_less(const char *left, const char *right) {
   ASSERT(left);
   ASSERT(right);
   int i = 0;
@@ -190,8 +176,7 @@ static int str_less(const char* left, const char* right)
   return left[i] < right[i];
 }
 
-static int str_greater(const char* left, const char* right)
-{
+static int str_greater(const char *left, const char *right) {
   ASSERT(left);
   ASSERT(right);
   int i = 0;
@@ -202,8 +187,7 @@ static int str_greater(const char* left, const char* right)
   return left[i] > right[i];
 }
 
-static int check_binary_types(interp* left, interp* right, char* op)
-{
+static int check_binary_types(interp *left, interp *right, char *op) {
   ASSERT(left);
   ASSERT(right);
 
@@ -212,16 +196,17 @@ static int check_binary_types(interp* left, interp* right, char* op)
     return -1;
   }
 
-  if ((left->type == STRING && right->type != STRING) || (left->type != STRING && right->type == STRING)) {
-    runtime_error("Unsupported operation %s for STRING and non STRING type", op);
+  if ((left->type == STRING && right->type != STRING) ||
+      (left->type != STRING && right->type == STRING)) {
+    runtime_error("Unsupported operation %s for STRING and non STRING type",
+                  op);
     return -1;
   }
 
   return 0;
 }
 
-static int less(interp* left, interp* right, int* dest)
-{
+static int less(interp *left, interp *right, int *dest) {
   if (check_binary_types(left, right, "<"))
     return -1;
 
@@ -245,8 +230,7 @@ static int less(interp* left, interp* right, int* dest)
   return 0;
 }
 
-static int greater(interp* left, interp* right, int* dest)
-{
+static int greater(interp *left, interp *right, int *dest) {
   if (check_binary_types(left, right, ">"))
     return -1;
 
@@ -270,8 +254,7 @@ static int greater(interp* left, interp* right, int* dest)
   return 0;
 }
 
-static int plus(interp* left, interp* right, int* dest)
-{
+static int plus(interp *left, interp *right, int *dest) {
   if (check_binary_types(left, right, "-"))
     return -1;
 
@@ -295,8 +278,7 @@ static int plus(interp* left, interp* right, int* dest)
   return 0;
 }
 
-static int minus(interp* left, interp* right, int* dest)
-{
+static int minus(interp *left, interp *right, int *dest) {
   if (check_binary_types(left, right, "-"))
     return -1;
 
@@ -320,8 +302,8 @@ static int minus(interp* left, interp* right, int* dest)
   return 0;
 }
 
-static int binary_dont_allow(interp* left, interp* right, char* op, int pairs, ...)
-{
+static int binary_dont_allow(interp *left, interp *right, char *op, int pairs,
+                             ...) {
   ASSERT(left);
   ASSERT(right);
   ASSERT(op);
@@ -331,8 +313,10 @@ static int binary_dont_allow(interp* left, interp* right, char* op, int pairs, .
   va_start(args, pairs);
 
   for (int i = 0; i < pairs; ++i) {
-    if (left->type == va_arg(args, interp_t) && right->type == va_arg(args, interp_t)) {
-      runtime_error("Unsupported operation %s for operands %s %s\n", op, itttostr(left->type), itttostr(right->type));
+    if (left->type == va_arg(args, interp_t) &&
+        right->type == va_arg(args, interp_t)) {
+      runtime_error("Unsupported operation %s for operands %s %s\n", op,
+                    itttostr(left->type), itttostr(right->type));
       return -1;
     }
   }
@@ -343,8 +327,10 @@ static int binary_dont_allow(interp* left, interp* right, char* op, int pairs, .
   if (left->type == IT_NIL || right->type == IT_NIL) {
   }
 
-  if ((left->type == STRING && right->type != STRING) || (left->type != STRING && right->type == STRING)) {
-    runtime_error("Unsupported operation %s for STRING and non STRING type", op);
+  if ((left->type == STRING && right->type != STRING) ||
+      (left->type != STRING && right->type == STRING)) {
+    runtime_error("Unsupported operation %s for STRING and non STRING type",
+                  op);
     return -1;
   }
 
@@ -352,8 +338,7 @@ static int binary_dont_allow(interp* left, interp* right, char* op, int pairs, .
   return 0;
 }
 
-static int star(interp* left, interp* right, int* dest)
-{
+static int star(interp *left, interp *right, int *dest) {
   if (check_binary_types(left, right, "*"))
     return -1;
 
@@ -372,8 +357,7 @@ static int star(interp* left, interp* right, int* dest)
   return 0;
 }
 
-static int slash(interp* left, interp* right, int* dest)
-{
+static int slash(interp *left, interp *right, int *dest) {
   if (check_binary_types(left, right, "/"))
     return -1;
 
@@ -397,8 +381,7 @@ static int slash(interp* left, interp* right, int* dest)
   return 0;
 }
 
-static int interpret_binary(binary b, interp* i)
-{
+static int interpret_binary(binary b, interp *i) {
   interp left;
   if (interpret(b.left, &left))
     return -1;
@@ -455,8 +438,7 @@ static int interpret_binary(binary b, interp* i)
   }
 }
 
-static int interpret(expr* e, interp* i)
-{
+static int interpret(expr *e, interp *i) {
   ASSERT(e);
 
   switch (e->type) {

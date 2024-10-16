@@ -2,4 +2,4 @@
 
 #include "token.h"
 
-int scanner_run(const char *data);
+token_arr scanner_parse_tokens(const char *data);

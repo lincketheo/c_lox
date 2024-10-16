@@ -116,7 +116,7 @@ typedef struct {
   token *tokens;
   size_t len;
   size_t cap;
-  memstack mem;
+  linmem mem; // Used to store c strings and literals
 } token_arr;
 
 #define token_arr_ASSERT(t)                                                    \
@@ -124,6 +124,8 @@ typedef struct {
   ASSERT((t)->len <= (t)->cap);                                                \
   ASSERT((t)->tokens);                                                         \
   ASSERT((t)->cap > 0)
+
+void token_arr_print(token_arr *t);
 
 token_arr token_arr_create();
 

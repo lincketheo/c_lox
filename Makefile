@@ -1,5 +1,5 @@
 
-jlox: main.c utils.c string.c token.c scanner.c errors.c memory.c
+jlox: main.c utils.c string.c token.c scanner.c errors.c memory.c expression.c parser.c
 	gcc -o $@ $^ -g
 
 format:

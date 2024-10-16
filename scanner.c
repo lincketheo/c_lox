@@ -1,7 +1,6 @@
 #include "scanner.h"
 #include "errors.h"
 #include "token.h"
-#include <stdio.h>
 #include <string.h>
 
 typedef struct {
@@ -155,7 +154,7 @@ static token_t ss_parse_ident(scanner_state *s) {
 }
 
 // Return -1 on no token parsed (might be error, might not)
-static token_t ss_next_tt(scanner_state *s) {
+static ssize_t ss_next_tt(scanner_state *s) {
   ASSERT(!ss_end(s));
   ASSERT(s->start == s->current);
 
@@ -237,7 +236,7 @@ static token_t ss_next_tt(scanner_state *s) {
 
 static void ss_parse(token_arr *t, scanner_state *s) {
   scanner_state_ASSERT(s);
-  token_t next;
+  ssize_t next;
 
   while (!ss_end(s)) {
     s->start = s->current;
@@ -248,9 +247,11 @@ static void ss_parse(token_arr *t, scanner_state *s) {
                      s->line);
     }
   }
+
+  token_arr_push(t, &s->data[s->start], s->current - s->start, TT_EOF, s->line);
 }
 
-static token_arr scanner_parse_tokens(const char *data) {
+token_arr scanner_parse_tokens(const char *data) {
   ASSERT(data);
 
   token_arr ret = token_arr_create();
@@ -258,23 +259,4 @@ static token_arr scanner_parse_tokens(const char *data) {
   ss_parse(&ret, &s);
 
   return ret;
-}
-
-int scanner_run(const char *data) {
-  ASSERT(data);
-
-  token_arr tokens = scanner_parse_tokens(data);
-  for (int i = 0; i < tokens.len; ++i) {
-    token t = tokens.tokens[i];
-    if (t.type == STRING) {
-      printf("%s %s %s\n", tttostr(t.type), t.literal, t.str_val);
-    } else if (t.type == NUMBER) {
-      printf("%s %s %f\n", tttostr(t.type), t.literal, t.n_val);
-    } else {
-      printf("%s %s\n", tttostr(t.type), t.literal);
-    }
-  }
-  token_arr_free(tokens);
-
-  return 0;
 }

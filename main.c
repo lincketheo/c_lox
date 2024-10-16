@@ -1,10 +1,18 @@
+#include "expression.h"
+#include "parser.h"
 #include "scanner.h"
 #include "string.h"
 #include "utils.h"
 #include <stdio.h>
 #include <string.h>
 
-int run(const char *data) { return scanner_run(data); }
+int run(const char *data) {
+  token_arr arr = scanner_parse_tokens(data);
+  expr *e = parse_tokens(arr);
+  if (e)
+    fprintln_expr(stdout, e);
+  return 0;
+}
 
 int run_file(const char *fname) {
   char *data = fread_malloc(fname);
@@ -23,7 +31,7 @@ int run_prompt() {
     cstr = string_to_cstr(&s);
     if (strcmp(cstr, "end") == 0)
       break;
-    scanner_run(cstr);
+    run(cstr);
   } while (s.len > 0);
 
   string_free(s);

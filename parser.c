@@ -2,12 +2,13 @@
 #include "expression.h"
 #include "memory.h"
 #include "token.h"
+#include <stdarg.h>
 #include <string.h>
 
 typedef struct {
   size_t cur;
   token_arr tokens;
-  memstack mem;
+  linmem mem;
 } parser;
 
 #define parser_ASSERT(p)                                                       \
@@ -15,7 +16,7 @@ typedef struct {
   ASSERT((p)->cur <= (p)->tokens.len);
 
 parser parser_create(token_arr arr) {
-  return (parser){.tokens = arr, .cur = 0, .mem = memstack_create()};
+  return (parser){.tokens = arr, .cur = 0, .mem = linmem_create()};
 }
 
 static inline token_t parser_peek_tt(const parser *p) {
@@ -23,14 +24,14 @@ static inline token_t parser_peek_tt(const parser *p) {
   return p->tokens.tokens[p->cur].type;
 }
 
-static inline token parser_peek_t(const parser *p) {
-  parser_ASSERT(p);
-  return p->tokens.tokens[p->cur];
-}
-
 static inline int parser_end(const parser *p) {
   parser_ASSERT(p);
   return parser_peek_tt(p) == TT_EOF;
+}
+
+static inline token parser_peek_t(const parser *p) {
+  parser_ASSERT(p);
+  return p->tokens.tokens[p->cur];
 }
 
 static inline token_t parser_prev_tt(const parser *p) {
@@ -96,80 +97,116 @@ static void parser_synchronize(parser *p) {
 
 expr *parse_expression(parser *p);
 
+/**
+ * primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
+ */
 static expr *parse_primary(parser *p) {
-  if (parser_match(p, TRUE)) {
-    expr *e = memstack_malloc(&p->mem, sizeof *e);
+  if (parser_match(p, 1, TRUE)) {
+    expr *e = linmem_malloc(&p->mem, sizeof *e);
     *e = expr_literal(lt_true());
     return e;
   }
 
-  if (parser_match(p, FALSE)) {
-    expr *e = memstack_malloc(&p->mem, sizeof *e);
+  if (parser_match(p, 1, FALSE)) {
+    expr *e = linmem_malloc(&p->mem, sizeof *e);
     *e = expr_literal(lt_false());
     return e;
   }
 
-  if (parser_match(p, NIL)) {
-    expr *e = memstack_malloc(&p->mem, sizeof *e);
+  if (parser_match(p, 1, NIL)) {
+    expr *e = linmem_malloc(&p->mem, sizeof *e);
     *e = expr_literal(lt_NIL());
     return e;
   }
 
-  if (parser_match(p, STRING)) {
+  if (parser_match(p, 1, STRING)) {
     token prev = parser_prev_t(p);
+
     ASSERT(prev.type == STRING);
     ASSERT(prev.str_val);
-    expr *e = memstack_malloc(&p->mem, sizeof *e);
+
+    expr *e = linmem_malloc(&p->mem, sizeof *e);
     *e = expr_literal(lt_string(prev.str_val));
     return e;
   }
 
-  if (parser_match(p, NUMBER)) {
+  if (parser_match(p, 1, NUMBER)) {
     token prev = parser_prev_t(p);
+
     ASSERT(prev.type == NUMBER);
-    expr *e = memstack_malloc(&p->mem, sizeof *e);
+
+    expr *e = linmem_malloc(&p->mem, sizeof *e);
     *e = expr_literal(lt_number(prev.n_val));
     return e;
   }
 
-  if (parser_match(p, LEFT_PAREN)) {
+  if (parser_match(p, 1, LEFT_PAREN)) {
     expr *e = parse_expression(p);
+
+    if (e == NULL)
+      return NULL;
+
     if (parser_check(p, RIGHT_PAREN)) {
       parser_advance(p);
-      expr *ret = memstack_malloc(&p->mem, sizeof *ret);
+      expr *ret = linmem_malloc(&p->mem, sizeof *ret);
       *ret = expr_grouping(e);
       return ret;
     } else {
       token t = parser_peek_t(p);
-      compile_error(t.line, "Expected closing paren ')'. Instead, got: %s",
-                    t.literal);
+      compile_error(t.line,
+                    "Expected closing paren ')'. "
+                    "Instead, got token of type: %s\n",
+                    tttostr(t.type));
       return NULL;
     }
   }
+
+  token t = parser_peek_t(p);
+  compile_error(t.line, "Expected expression\n");
+  return NULL;
 }
 
+/**
+ * unary -> ( "!" | "-" ) unary | primary
+ */
 static expr *parse_unary(parser *p) {
   parser_ASSERT(p);
 
   if (parser_match(p, 2, BANG, MINUS)) {
     token_t prev = parser_prev_tt(p);
-    expr *ret = memstack_malloc(&p->mem, sizeof *ret);
-    *ret = expr_unary(unary_c(parse_unary(p), prev));
+    expr *ret = linmem_malloc(&p->mem, sizeof *ret);
+
+    expr *e = parse_unary(p);
+
+    if (e == NULL)
+      return NULL;
+
+    *ret = expr_unary(unary_c(e, prev));
     return ret;
   } else {
     return parse_primary(p);
   }
 }
 
+/**
+ * factor -> unary ( ( "/" | "*" ) unary )*
+ */
 static expr *parse_factor(parser *p) {
   parser_ASSERT(p);
 
   expr *e = parse_unary(p);
 
+  if (e == NULL)
+    return NULL;
+
   while (parser_match(p, 2, SLASH, STAR)) {
     token_t prev = parser_prev_tt(p);
     expr *right = parse_unary(p);
-    expr *ret = memstack_malloc(&p->mem, sizeof *ret);
+
+    if (right == NULL)
+      return NULL;
+
+    expr *ret = linmem_malloc(&p->mem, sizeof *ret);
     *ret = expr_binary(binary_c(e, prev, right));
     e = ret;
   }
@@ -177,15 +214,25 @@ static expr *parse_factor(parser *p) {
   return e;
 }
 
+/**
+ * term -> factor ( ( "+" | "-" ) factor )*
+ */
 static expr *parse_term(parser *p) {
   parser_ASSERT(p);
 
   expr *e = parse_factor(p);
 
+  if (e == NULL)
+    return NULL;
+
   while (parser_match(p, 2, PLUS, MINUS)) {
     token_t prev = parser_prev_tt(p);
     expr *right = parse_factor(p);
-    expr *ret = memstack_malloc(&p->mem, sizeof *ret);
+
+    if (right == NULL)
+      return NULL;
+
+    expr *ret = linmem_malloc(&p->mem, sizeof *ret);
     *ret = expr_binary(binary_c(e, prev, right));
     e = ret;
   }
@@ -193,15 +240,25 @@ static expr *parse_term(parser *p) {
   return e;
 }
 
+/**
+ * comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )*
+ */
 static expr *parse_comparison(parser *p) {
   parser_ASSERT(p);
 
   expr *e = parse_term(p);
 
+  if (e == NULL)
+    return NULL;
+
   while (parser_match(p, 4, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL)) {
     token_t prev = parser_prev_tt(p);
     expr *right = parse_term(p);
-    expr *ret = memstack_malloc(&p->mem, sizeof *ret);
+
+    if (right == NULL)
+      return NULL;
+
+    expr *ret = linmem_malloc(&p->mem, sizeof *ret);
     *ret = expr_binary(binary_c(e, prev, right));
     e = ret;
   }
@@ -209,15 +266,25 @@ static expr *parse_comparison(parser *p) {
   return e;
 }
 
+/**
+ * equality -> comparison ( ( "!=" | "==") comparison )*
+ */
 static expr *parse_equality(parser *p) {
   parser_ASSERT(p);
 
   expr *e = parse_comparison(p);
 
+  if (e == NULL)
+    return NULL;
+
   while (parser_match(p, 2, BANG, BANG_EQUAL)) {
     token_t prev = parser_prev_tt(p);
     expr *right = parse_comparison(p);
-    expr *ret = memstack_malloc(&p->mem, sizeof *ret);
+
+    if (right == NULL)
+      return NULL;
+
+    expr *ret = linmem_malloc(&p->mem, sizeof *ret);
     *ret = expr_binary(binary_c(e, prev, right));
     e = ret;
   }
@@ -226,3 +293,9 @@ static expr *parse_equality(parser *p) {
 }
 
 expr *parse_expression(parser *p) { return parse_equality(p); }
+
+expr *parse_tokens(token_arr arr) {
+  parser p = parser_create(arr);
+  expr *ret = parse_equality(&p);
+  return ret;
+}

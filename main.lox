@@ -1,2 +1,4 @@
 var a = 5 + 6 + 1;
-print a;
+var b = true + 3;
+var c = a + b;
+print c;

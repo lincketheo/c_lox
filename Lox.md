@@ -1,0 +1,53 @@
+# Lox
+- Dynamic Typing 
+- Automated memory management
+https://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon04Unified.pdf
+- Data types:
+    - boolean
+    - numbers
+    - strings
+    - Nil
+- Expressions:
+    - Produces a value 
+    - Arithmetic
+        - binary:
+            - a + b 
+            - a - b 
+            - a * b 
+            - a / b
+        - infix:
+            - -a
+    - Comparisons 
+        - a < b 
+        - b <= b 
+        - c > b 
+        - c >= b 
+        - c == b 
+        - c != b
+    - Logical operators
+        - !true 
+        - true and false 
+        - true or false
+    - Precedence and Grouping
+- Statements:
+    - Produce an effect
+- Variables
+    - var foo = "foobar";
+    - var bar; // inits to nil
+- Control flow 
+    - If 
+    - while 
+    - for
+- Functions 
+    - makeBreakfast(a, b, c);
+    - fun printSum(a, b) { print a + b; }
+    - Argument 
+        - Actual value you pass to a function 
+        - e.g. actual parmeters
+    - Parameter
+        - variable that holds the value in the body
+        - a declaration has a parameter list
+        - e.g. formal parameters / formals
+    - Implicitely return nil w/out return
+- Closures
+- Classes
